@@ -67,44 +67,52 @@ public class GameLoop extends Application
         gc.setStroke( Color.BLACK );
         gc.setLineWidth(1);
         
-        Sprite briefcase = new Sprite();
-        briefcase.setImage("pointer.png");
-        briefcase.setPosition(200, 0);
+        SpriteStore uiStore = new UISpriteStore();
+        Sprite pointer = uiStore.orderSprite("pointer", 200, 0);
+        UISpriteMenu uiSpriteM = new UISpriteMenu();
+        BGSpriteMenu bgSpriteM = new BGSpriteMenu();
+        uiSpriteM.addSprite(pointer);
+        SpriteServer ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
         
-        ArrayList<Sprite> moneybagList = new ArrayList<Sprite>();
+        //ArrayList<Sprite> moneybagList = new ArrayList<Sprite>();
         
         boolean done = false;
     	double fgx = 0;
     	double fgy= 0;
     	ArrayList<Sprite> fgreen = new ArrayList<Sprite>();
+    	//Iterator
+    	SpriteStore bgStore = new BackgroundSpriteStore();
         while(!done) {
-        	Sprite fieldgreen = new Sprite();
-        	fieldgreen.setImage("BFT_FIELDGREEN.png");
-        	fieldgreen.setPosition(fgx, fgy);
-        	fgreen.add(fieldgreen);
-        	fgx = fgx + fieldgreen.getWidth()-1;
+        	Sprite sprite = bgStore.orderSprite("FIELDGREEN", fgx, fgy);
+        	//fieldgreen.setPosition(fgx, fgy);
+        	//fgreen.add(sprite);
+        	bgSpriteM.addSprite(sprite);
+        	fgx = fgx + sprite.getWidth()-1;
         	
         	if(fgx > width) {
         		if(fgy > height) {
         			done=true; 
         			break;
         		} else {
-        			fgy = fgy + fieldgreen.getHeight() - 1;
+        			fgy = fgy + sprite.getHeight() - 1;
         			fgx = 0;
         		}
         		
         	}
         }
         
-        for (int i = 0; i < 15; i++)
-        {
-            Sprite moneybag = new Sprite();
-            moneybag.setImage("moneybag.png");
-            double px = 350 * Math.random() + 50;
-            double py = 350 * Math.random() + 50;          
-            moneybag.setPosition(px,py);
-            moneybagList.add( moneybag );
-        }
+        
+//        for (int i = 0; i < 15; i++)
+//        {
+//
+//            double px = 350 * Math.random() + 50;
+//            double py = 350 * Math.random() + 50;  
+//            Sprite moneybag = new Sprite();
+//            moneybag.setImage("moneybag.png");
+//            moneybag.setPosition(px,py);
+//            
+//            moneybagList.add( moneybag );
+//        }
         
         LongValue lastNanoTime = new LongValue( System.nanoTime() );
 
@@ -120,42 +128,48 @@ public class GameLoop extends Application
                 lastNanoTime.value = currentNanoTime;
                 
                 // game logic
+//        		PizzaStore nyStore = new NYPizzaStore();
+//        		PizzaStore chicagoStore = new ChicagoPizzaStore();
+//         
+//        		Pizza pizza = nyStore.orderPizza("cheese");
                 
-                briefcase.setVelocity(0,0);
+        		
+                pointer.setVelocity(0,0);
                 if (input.contains("A"))
-                    briefcase.addVelocity(-5,0);
+                    pointer.addVelocity(-5,0);
                 if (input.contains("D"))
-                    briefcase.addVelocity(5,0);
+                    pointer.addVelocity(5,0);
                 if (input.contains("W"))
-                    briefcase.addVelocity(0,-5);
+                    pointer.addVelocity(0,-5);
                 if (input.contains("S"))
-                    briefcase.addVelocity(0,5);
+                    pointer.addVelocity(0,5);
                     
                 //GameObjects.updateposition();
                 //GameObjects.render( gc );
-                briefcase.update(elapsedTime);
+                pointer.update(elapsedTime);
                 
                 // collision detection
                 
-                Iterator<Sprite> moneybagIter = moneybagList.iterator();
-                while ( moneybagIter.hasNext() )
-                {
-                    Sprite moneybag = moneybagIter.next();
-                    if ( briefcase.intersects(moneybag) )
-                    {
-                        moneybagIter.remove();
-                        score.value++;
-                    }
-                }
+//                Iterator<Sprite> moneybagIter = moneybagList.iterator();
+//                while ( moneybagIter.hasNext() )
+//                {
+//                    Sprite moneybag = moneybagIter.next();
+//                    if ( pointer.intersects(moneybag) )
+//                    {
+//                        moneybagIter.remove();
+//                        score.value++;
+//                    }
+//                }
                 
                 // render
                 
                 gc.clearRect(0, 0, 512,512);
-                for(Sprite fg:fgreen) fg.render(gc);
-                briefcase.render( gc );
                 
-                for (Sprite moneybag : moneybagList )
-                    moneybag.render( gc );
+                //for(Sprite fg:fgreen) fg.render(gc);
+                //pointer.render( gc );
+                ss.renderitems();
+//                for (Sprite moneybag : moneybagList )
+//                    moneybag.render( gc );
                 
                 
                 

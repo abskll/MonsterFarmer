@@ -2,20 +2,18 @@ import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
 
-public class SpriteStore {
-	SimpleSpriteFactory factory;
+public abstract class SpriteStore {
 	
-	public SpriteStore(SimpleSpriteFactory factory) {
-		this.factory = factory;
-	}
+	abstract Sprite createSprite(String item);
 	
-	public Sprite orderSprite(Image i) {
-		Sprite sprite;
-		sprite = factory.createSprite(i);
-		//do work like render
-		
-		sprite.grow();
+	public Sprite orderSprite(String type, double x, double y) {
+		Sprite sprite = createSprite(type);
+		sprite.setPosition(x, y);
+		System.out.println("--- Making a " + sprite.getName() + " ---");
+		//sprite.grow();
+		sprite.box();
 		return sprite;
 	}
+	
 	
 }

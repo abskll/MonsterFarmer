@@ -1,17 +1,21 @@
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
+import java.util.Random;
 
-public class Sprite
+public abstract class Sprite
 {
-    private Image image;
+    Image image;
     private double positionX;
     private double positionY;    
     private double velocityX;
     private double velocityY;
-    private double width;
-    private double height;
+    double width;
+    double height;
     String name;
+    Random rand = new Random();
+    
+ 
 
     public Sprite()
     {
@@ -44,7 +48,12 @@ public class Sprite
         Image i = new Image(filename);
         setImage(i);
     }
-
+	public void box() {
+		System.out.println("Placing Sprite in official SpriteStore box");
+	}
+	public String getName() {
+		return name;
+	}
     public void setPosition(double x, double y)
     {
         positionX = x;
@@ -95,6 +104,17 @@ public class Sprite
     }
 	public void grow() {
 		// TODO Auto-generated method stub
+		
+
+//		new Thread(() -> {
+//			
+//		    while(!donegrowing) {
+//				int randnum = rand.nextInt(1000);
+//				if(randnum > 900) {
+//					
+//				}
+//		    }
+//		}).start();
 		
 	}
 }
