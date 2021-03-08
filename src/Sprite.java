@@ -10,6 +10,10 @@ public abstract class Sprite
     private double positionY;    
     private double velocityX;
     private double velocityY;
+    private double minvelocityX = -5;
+    private double minvelocityY = -5;
+    private double maxvelocityX = 5;
+    private double maxvelocityY = 5;
     double width;
     double height;
     String name;
@@ -68,18 +72,39 @@ public abstract class Sprite
 
     public void addVelocity(double x, double y)
     {
-        velocityX += x*2;
-        velocityY += y*2;
+    	
+        velocityX += x;
+        velocityY += y;
+        if(!(velocityX==0)) {
+        	if(velocityX>0) {
+        		if(velocityX > maxvelocityX) {
+        			velocityX = maxvelocityX;
+        		}
+        	} else if(velocityX < minvelocityX) {
+        		velocityX = minvelocityX;
+        	}
+        }	
+        if(!(velocityY==0)) {
+        	if(velocityY>0) {
+        		if(velocityY > maxvelocityY) {
+        			velocityY = maxvelocityY;
+        		}
+        	} else if(velocityY < minvelocityY) {
+        		velocityY = minvelocityY;
+        	}        	
+        }
     }
-
+    public void subtractVelocity(double x, double y)
+    {
+        velocityX -= x;
+        velocityY -= y;
+    }
     public void update(double time)
     {
     	
         positionX += velocityX * time;
         positionY += velocityY * time;
-    	
 
-        
     }
 
     public void render(GraphicsContext gc)
