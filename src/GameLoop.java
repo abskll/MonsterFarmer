@@ -12,48 +12,116 @@ import javafx.animation.AnimationTimer;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+
+import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
 // Collect the Money Bags!
-public class GameLoop extends Application 
+public class GameLoop extends Application implements Serializable
 {
-    public static void main(String[] args) 
-    {
-        launch(args);
+	private static final long serialVersionUID = 1L;
+	transient private Double experience = null;
+	transient private Integer money = null;
+	transient UISpriteMenu uiSpriteM = new UISpriteMenu();
+	transient BGSpriteMenu bgSpriteM = new BGSpriteMenu();
+	transient double width = 1024;
+	transient double height = 768;
+	transient Random rand = new Random();
+	transient SpriteStore uiStore = new UISpriteStore();
+	transient Sprite cashbag = null;
+	transient boolean fieldhasmbag = false;
+	transient Singleton log = Logger.getInstance();
+	transient GameState GS;
+	transient SpriteServer ss;
+	//    public static void main(String[] args) 
+//    {
+//        launch(args);
+//    }
+	public void setMoney(Integer money) {
+		this.money = money;
+	}
+	public Integer getMoney() {
+		return money;
+	}
+	public void setExperience(Double experience) {
+		this.experience = experience;
+	}
+	public Double getExperience() {
+		return experience;
+	}
+	public UISpriteMenu getuiSpriteM() {
+		return this.uiSpriteM;
+	}
+	public void setUISpriteMenu(UISpriteMenu uiSpriteM) {
+		this.uiSpriteM = uiSpriteM;
+	}
+	public BGSpriteMenu getBGSpriteMenu() {
+		return this.bgSpriteM;
+	}
+	public void setBGSpriteMenu(BGSpriteMenu bgSpriteM) {
+		this.bgSpriteM = bgSpriteM;
+	}
+	public void setuiStore(SpriteStore uiStore) {
+		this.uiStore = uiStore;
+	}
+	public SpriteStore getuiStore() {
+		return uiStore;
+	}
+	public void setcashbag(Sprite cashbag) {
+		this.cashbag = cashbag;
+	}
+	public Sprite getcashbag() {
+		return cashbag;
+	}
+	public void setfieldhadmbag(boolean fieldhasmbag) {
+		this.fieldhasmbag = fieldhasmbag;
+	}
+    public GameLoop(GameState GS) {
+    	//launch(args);
+    	this.GS = GS;
     }
-
     @Override
     public void start(Stage theStage) 
     {
-        theStage.setTitle( "MonsterFarmer!" );
+        theStage.setTitle( "Monster(Farmer)!" );
+
+        
         //long cnanotime;
         Group root = new Group();
         Scene theScene = new Scene( root );
         theStage.setScene( theScene );
         //double width = 512;
         //double height = 512;
-        double width = 1024;
-        double height = 768;
+
         Canvas canvas = new Canvas( width, height );
         root.getChildren().add( canvas );
         GraphicsContext gc = canvas.getGraphicsContext2D();
-
+        if(experience==null) {
+        	experience = 0.0;
+        	log.addLine("experience set to 0");
+        }
+        if(money==null) {
+        	money = 0;
+        	log.addLine("money set to 0");
+        }
         Font theFont = Font.font( "Helvetica", FontWeight.BOLD, 24 );
         gc.setFont( theFont );
         gc.setFill( Color.GREEN );
         gc.setStroke( Color.BLACK );
-        gc.setLineWidth(1);       
-
+        gc.setLineWidth(1);     
+        
+        
         ArrayList<String> input = new ArrayList<String>();
-        SpriteStore uiStore = new UISpriteStore();
+
         Sprite pointer = uiStore.orderSprite("pointer", 200, 0);
         Sprite pointer2 = uiStore.orderSprite("pointer", 300, 0);
-        UISpriteMenu uiSpriteM = new UISpriteMenu();
-        BGSpriteMenu bgSpriteM = new BGSpriteMenu();
+        log.addLine("pointers made");
         uiSpriteM.addSprite(pointer);
         uiSpriteM.addSprite(pointer2);
-        SpriteServer ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+        ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
         
         SpriteControl spritecontrol = new SpriteControl();
         Move move = new Move(pointer);
@@ -83,7 +151,7 @@ public class GameLoop extends Application
 		Command stopgoDown = () -> {
 			move.stopgoDown();
 		};		
-		
+		log.addLine("commands set");
 //        Move move2 = new Move(pointer2);
 //        
 //		Command goRight2 = () -> {
@@ -166,6 +234,12 @@ public class GameLoop extends Application
 	                    	System.out.println("Pressed 2 - switching control");
 	                        // code block
 	                        break;
+	                    case DIGIT0:
+	                    	//Singleton bar = HotterSingleton.getInstance();
+	                    	//GameState GS = GameState.getInstance();
+	                    	GameLoop gl = GS.getGameLoop();
+	                    	GS.saveGame(gl);
+	                    	break;
 	                    default:
                     	// code block
                     }
@@ -246,8 +320,7 @@ public class GameLoop extends Application
         
         LongValue lastNanoTime = new LongValue( System.nanoTime() );
 
-        IntValue score = new IntValue(0);
-
+       
         new AnimationTimer()
         {
             public void handle(long currentNanoTime)
@@ -268,8 +341,12 @@ public class GameLoop extends Application
 //                if (input.contains("S"))
 //                    pointer.addVelocity(0,5);
                 
+                experience += 0.0001;
+                int randint = rand.nextInt(10000);
+
                 
                 
+
                 
                 //GameObjects.updateposition();
                 //GameObjects.render( gc );
@@ -290,22 +367,60 @@ public class GameLoop extends Application
                 
                 // render
                 
-                gc.clearRect(0, 0, 512,512);
+                gc.clearRect(0, 0, width,height);
                 
                 //for(Sprite fg:fgreen) fg.render(gc);
                 //pointer.render( gc );
+                moneybags(pointer, randint, gc);
                 ss.renderitems();
 //                for (Sprite moneybag : moneybagList )
 //                    moneybag.render( gc );
                 
                 
-                
-                String pointsText = "Controls: you=1, pets=2";
-                gc.fillText( pointsText, 360, 36 );
-                gc.strokeText( pointsText, 360, 36 );
+                DecimalFormat df = new DecimalFormat("###.###");
+                String pointsText = "Controls: you=1, pets=2, save(not working)=0, xp:" 
+                + df.format(experience) + 
+                		", money:" + money;
+                gc.fillText( pointsText, 300, 36 );
+                gc.strokeText( pointsText, 300, 36 );
             }
         }.start();
 
         theStage.show();
+    }
+    
+    public void moneybags(Sprite pointer, int randint, GraphicsContext gc) {
+    	if(!fieldhasmbag) {
+    		if(randint>9970) {
+                int randwidth = rand.nextInt((int) width - 200);
+                int randheight = rand.nextInt((int) height - 200);
+                randwidth+=100;
+                randheight+=100;
+            	cashbag = uiStore.orderSprite("moneybag", randwidth, randheight);
+            	uiSpriteM.addSprite(cashbag);
+            	//uiSpriteM.addSprite(cashbag);
+            	//uiSpriteM.addSprite(cashbag);
+            	fieldhasmbag = true;
+            	this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+            	//return ss;
+            }
+    	} else {
+    		if ( pointer.intersects(cashbag) )
+            {
+    			System.out.println("Intersects");
+          	while(uiSpriteM.hasNext()) {
+          		if(uiSpriteM.next().name.contains("MbagSprite")) {
+          			uiSpriteM.remove();
+          			money+=100;
+          			cashbag = null;
+          			fieldhasmbag = false;
+          			this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+          		}
+          	}
+
+            }
+    	}
+    	//return ss;
+
     }
 }
