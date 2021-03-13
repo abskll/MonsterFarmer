@@ -1,10 +1,15 @@
+import java.io.Serializable;
 import java.util.Iterator;
 
-public class UISpriteMenu implements SpriteMenu {
+public class UISpriteMenu implements SpriteMenu, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8979092259322538037L;
 	static final int MAX_ITEMS = 10000;
 	int numberOfItems = 0;
 	int position = 0;
-	Sprite[] sprites;
+	transient Sprite[] sprites;
 	public UISpriteMenu() {
 		sprites = new Sprite[MAX_ITEMS];
 	}
@@ -18,6 +23,8 @@ public class UISpriteMenu implements SpriteMenu {
 		if(numberOfItems >= MAX_ITEMS) {
 			System.err.println("Sorry, SpriteMenu is full!");
 		} else {
+			System.out.println("numberofitems:" + numberOfItems);
+			System.out.println(sprites==null);
 			sprites[numberOfItems] = sprite;
 			numberOfItems++;
 		}

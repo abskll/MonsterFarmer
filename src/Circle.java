@@ -1,8 +1,14 @@
+import java.io.Serializable;
+
 import javafx.geometry.Point2D;
 
-public class Circle
+public class Circle implements Serializable
 {
-    private Point2D center;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6454091039171299826L;
+	private Point2D center;
     private double  radius;
 
     public Circle(double x, double y, double r)

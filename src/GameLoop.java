@@ -4,7 +4,6 @@ import javafx.scene.Scene;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -22,20 +21,39 @@ import java.util.Random;
 // Collect the Money Bags!
 public class GameLoop extends Application implements Serializable
 {
-	private static final long serialVersionUID = 1L;
-	transient private Double experience = null;
-	transient private Integer money = null;
-	transient UISpriteMenu uiSpriteM = new UISpriteMenu();
-	transient BGSpriteMenu bgSpriteM = new BGSpriteMenu();
-	transient double width = 1024;
-	transient double height = 768;
-	transient Random rand = new Random();
-	transient SpriteStore uiStore = new UISpriteStore();
-	transient Sprite cashbag = null;
-	transient boolean fieldhasmbag = false;
-	transient Singleton log = Logger.getInstance();
-	transient GameState GS;
-	transient SpriteServer ss;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -9037960853303947798L;
+	private Double experience = null;
+	private Integer money = null;
+	UISpriteMenu uiSpriteM = new UISpriteMenu();
+	BGSpriteMenu bgSpriteM = new BGSpriteMenu();
+	UISpriteMenu uiSpriteMExplorer = new UISpriteMenu();
+	UISpriteMenu uiSpriteMFarmer = new UISpriteMenu();
+	BGSpriteMenu bgSpriteMExplorer = new BGSpriteMenu();
+	BGSpriteMenu bgSpriteMFarmer = new BGSpriteMenu();
+	double width = 1024;
+	double height = 768;
+	Random rand = new Random();
+	SpriteStore uiStore = new UISpriteStore();
+	Sprite cashbag = null;
+	boolean fieldhasmbag = false;
+	Singleton log = Logger.getInstance();
+	GameState GS;
+	GameLoop gl;
+	SpriteServer ss;
+	boolean farm = false;
+	double posX = 200;
+	double posY = 50;
+	SpriteControl spritecontrol;
+	CropSpriteStore css = new CropSpriteStore();
+	private Double food = 0.0;
+	transient GraphicsContext gc;
+	boolean hascrop = false;
+	
+	
+	
 	//    public static void main(String[] args) 
 //    {
 //        launch(args);
@@ -53,16 +71,16 @@ public class GameLoop extends Application implements Serializable
 		return experience;
 	}
 	public UISpriteMenu getuiSpriteM() {
-		return this.uiSpriteM;
+		return this.uiSpriteMExplorer;
 	}
 	public void setUISpriteMenu(UISpriteMenu uiSpriteM) {
-		this.uiSpriteM = uiSpriteM;
+		this.uiSpriteMExplorer = uiSpriteM;
 	}
 	public BGSpriteMenu getBGSpriteMenu() {
-		return this.bgSpriteM;
+		return this.bgSpriteMExplorer;
 	}
 	public void setBGSpriteMenu(BGSpriteMenu bgSpriteM) {
-		this.bgSpriteM = bgSpriteM;
+		this.bgSpriteMExplorer = bgSpriteM;
 	}
 	public void setuiStore(SpriteStore uiStore) {
 		this.uiStore = uiStore;
@@ -79,14 +97,29 @@ public class GameLoop extends Application implements Serializable
 	public void setfieldhadmbag(boolean fieldhasmbag) {
 		this.fieldhasmbag = fieldhasmbag;
 	}
-    public GameLoop(GameState GS) {
+    public void setGameState(GameState GS) {
     	//launch(args);
     	this.GS = GS;
+    }
+    public GameState getGameState() {
+    	return this.GS;
+    }
+    public void setGameLoop(GameLoop gl) {
+    	this.gl = gl;
+    }
+    public GameLoop getGameLoop() {
+    	return this.gl;
+    }
+    public void setposX(double posX) {
+    	this.posX = posX;
+    }
+    public void setposY(double posY) {
+    	this.posY = posY;
     }
     @Override
     public void start(Stage theStage) 
     {
-        theStage.setTitle( "Monster(Farmer)!" );
+        theStage.setTitle( "Monster(Farmer)!(DEMO)" );
 
         
         //long cnanotime;
@@ -98,7 +131,7 @@ public class GameLoop extends Application implements Serializable
 
         Canvas canvas = new Canvas( width, height );
         root.getChildren().add( canvas );
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc = canvas.getGraphicsContext2D();
         if(experience==null) {
         	experience = 0.0;
         	log.addLine("experience set to 0");
@@ -109,22 +142,36 @@ public class GameLoop extends Application implements Serializable
         }
         Font theFont = Font.font( "Helvetica", FontWeight.BOLD, 24 );
         gc.setFont( theFont );
-        gc.setFill( Color.GREEN );
+        gc.setFill( Color.BLUE );
         gc.setStroke( Color.BLACK );
         gc.setLineWidth(1);     
         
         
         ArrayList<String> input = new ArrayList<String>();
 
-        Sprite pointer = uiStore.orderSprite("pointer", 200, 0);
-        Sprite pointer2 = uiStore.orderSprite("pointer", 300, 0);
+        AnimatedImage fighter = new AnimatedImage();
+        fighter.setPosition(posX, posY);
+        if(uiSpriteMExplorer.getSprites()==null) {
+        	uiSpriteMExplorer = new UISpriteMenu();
+        }
+        if(uiSpriteM.getSprites()==null) {
+        	uiSpriteM = new UISpriteMenu();
+        }
+        if(uiSpriteMFarmer.getSprites()==null) {
+        	uiSpriteMFarmer = new UISpriteMenu();
+            if(hascrop) {
+    			uiSpriteMFarmer.addSprite(css.orderSprite("FARMSMCROPBROWN", 0, 40));
+    			this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+            }
+        }
+
         log.addLine("pointers made");
-        uiSpriteM.addSprite(pointer);
-        uiSpriteM.addSprite(pointer2);
+        //uiSpriteMExplorer.addSprite(fighter);
+        //uiSpriteMExplorer.addSprite(pointer2);
         ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
         
-        SpriteControl spritecontrol = new SpriteControl();
-        Move move = new Move(pointer);
+        spritecontrol = new SpriteControl();
+        MoveAnimatedImage move = new MoveAnimatedImage(fighter);
         
 		Command goRight = () -> {
 			move.goRight();
@@ -198,52 +245,126 @@ public class GameLoop extends Application implements Serializable
                     KeyCode code = e.getCode();//.toString();
                     if ( !input.contains(code.toString()) )
                         input.add( code.toString() );
-                    switch(code) {
-	                    case D:
-	                    	spritecontrol.activateButtonWasPushed(D);
-	                    	break;
-	                    case A:
-	                    	spritecontrol.activateButtonWasPushed(A);
-	                    	// code block
-	                    	break;
-	                    case W:
-	                    	spritecontrol.activateButtonWasPushed(W);
-	                        // code block
-	                        break;
-	                    case S:
-	                    	spritecontrol.activateButtonWasPushed(S);
-	                        // code block
-	                        break;
-	                    case DIGIT1:
-//	                    	spritecontrol.setCommand(D, goRight, stopgoRight);
-//	                		spritecontrol.setCommand(A, goLeft, stopgoLeft);
-//	                		spritecontrol.setCommand(W, goUp, stopgoUp);
-//	                		spritecontrol.setCommand(S, goDown, stopgoDown);
-	                    	spritecontrol.setSprite(pointer);
-	                    	move.setSprite(pointer);
-	                    	System.out.println("Pressed 1 - switching control");
-	                        // code block
-	                        break;
-	                    case DIGIT2:
-//	                    	spritecontrol.setCommand(D, goRight2, stopgoRight2);
-//	                		spritecontrol.setCommand(A, goLeft2, stopgoLeft2);
-//	                		spritecontrol.setCommand(W, goUp2, stopgoUp2);
-//	                		spritecontrol.setCommand(S, goDown2, stopgoDown2);
-	                    	spritecontrol.setSprite(pointer2);
-	                    	move.setSprite(pointer2);
-	                    	System.out.println("Pressed 2 - switching control");
-	                        // code block
-	                        break;
-	                    case DIGIT0:
-	                    	//Singleton bar = HotterSingleton.getInstance();
-	                    	//GameState GS = GameState.getInstance();
-	                    	GameLoop gl = GS.getGameLoop();
-	                    	GS.saveGame(gl);
-	                    	break;
-	                    default:
+                    if(farm==false) {
+                    	switch(code) {
+		                    case D:
+		                    	spritecontrol.activateButtonWasPushed(D);
+		                    	break;
+		                    case A:
+		                    	spritecontrol.activateButtonWasPushed(A);
+		                    	// code block
+		                    	break;
+		                    case W:
+		                    	spritecontrol.activateButtonWasPushed(W);
+		                        // code block
+		                        break;
+		                    case S:
+		                    	spritecontrol.activateButtonWasPushed(S);
+		                        // code block
+		                        break;
+//		                    case DIGIT1:
+//	//	                    	spritecontrol.setCommand(D, goRight, stopgoRight);
+//	//	                		spritecontrol.setCommand(A, goLeft, stopgoLeft);
+//	//	                		spritecontrol.setCommand(W, goUp, stopgoUp);
+//	//	                		spritecontrol.setCommand(S, goDown, stopgoDown);
+//		                    	spritecontrol.setSprite(pointer);
+//		                    	move.setSprite(pointer);
+//		                    	System.out.println("Pressed 1 - switching control");
+//		                        // code block
+//		                        break;
+//		                    case DIGIT2:
+//	//	                    	spritecontrol.setCommand(D, goRight2, stopgoRight2);
+//	//	                		spritecontrol.setCommand(A, goLeft2, stopgoLeft2);
+//	//	                		spritecontrol.setCommand(W, goUp2, stopgoUp2);
+//	//	                		spritecontrol.setCommand(S, goDown2, stopgoDown2);
+//		                    	spritecontrol.setSprite(pointer2);
+//		                    	move.setSprite(pointer2);
+//		                    	System.out.println("Pressed 2 - switching control");
+//		                        // code block
+//		                        break;
+		                    case DIGIT0:
+		                    	//Singleton bar = HotterSingleton.getInstance();
+		                    	//GameState GS = GameState.getInstance();
+		                    	GameLoop gl = GS.getGameLoop();
+		                    	GS.saveGame(gl);
+		                    	break;
+		                    case G:
+		                    	//Singleton bar = HotterSingleton.getInstance();
+		                    	//GameState GS = GameState.getInstance();
+		                    	farm=true;
+		                    	//order farm
+		                    	reorderSprites(farm, gc);
+		                    	System.out.println("farm is now true");
+		                    	
+		                    	break;
+		                    case M:
+		                    	//Singleton bar = HotterSingleton.getInstance();
+		                    	//GameState GS = GameState.getInstance();
+		                    	break;
+		                    default:
                     	// code block
+                    	}
+                    } else {
+                    	switch(code) {
+		                    case D:
+		                    	spritecontrol.activateButtonWasPushed(D);
+		                    	break;
+		                    case A:
+		                    	spritecontrol.activateButtonWasPushed(A);
+		                    	// code block
+		                    	break;
+		                    case W:
+		                    	spritecontrol.activateButtonWasPushed(W);
+		                        // code block
+		                        break;
+		                    case S:
+		                    	spritecontrol.activateButtonWasPushed(S);
+		                        // code block
+		                        break;
+		                    case DIGIT1:
+	//	                    	spritecontrol.setCommand(D, goRight, stopgoRight);
+	//	                		spritecontrol.setCommand(A, goLeft, stopgoLeft);
+	//	                		spritecontrol.setCommand(W, goUp, stopgoUp);
+	//	                		spritecontrol.setCommand(S, goDown, stopgoDown
+		                    	System.out.println("Pressed 1 - purchasing plot");
+		                    	purchasePlot(gc);
+		                        // code block
+		                        break;
+		                    case DIGIT2:
+	//	                    	spritecontrol.setCommand(D, goRight2, stopgoRight2);
+	//	                		spritecontrol.setCommand(A, goLeft2, stopgoLeft2);
+	//	                		spritecontrol.setCommand(W, goUp2, stopgoUp2);
+	//	                		spritecontrol.setCommand(S, goDown2, stopgoDown2);
+		                    	//spritecontrol.setSprite(pointer2);
+		                    	//move.setSprite(pointer2);
+		                    	System.out.println("Pressed 2 - ");
+		                        // code block
+		                        break;
+		                    case DIGIT0:
+		                    	//Singleton bar = HotterSingleton.getInstance();
+		                    	//GameState GS = GameState.getInstance();
+		                    	GameLoop gl = GS.getGameLoop();
+		                    	GS.saveGame(gl);
+		                    	break;
+		                    case G:
+		                    	//Singleton bar = HotterSingleton.getInstance();
+		                    	//GameState GS = GameState.getInstance();
+		                    	break;
+		                    case M:
+		                    	//Singleton bar = HotterSingleton.getInstance();
+		                    	//GameState GS = GameState.getInstance();
+		                    	farm=false;
+		                    	reorderSprites(farm, gc);
+		                    	System.out.println("farm is now false");
+		                    	break;
+		                    default:
+                	// code block
+                    	}
                     }
+    
                 }
+
+
             });
 
         theScene.setOnKeyReleased(
@@ -290,7 +411,7 @@ public class GameLoop extends Application implements Serializable
         	Sprite sprite = bgStore.orderSprite("FIELDGREEN", fgx, fgy);
         	//fieldgreen.setPosition(fgx, fgy);
         	//fgreen.add(sprite);
-        	bgSpriteM.addSprite(sprite);
+        	bgSpriteMExplorer.addSprite(sprite);
         	fgx = fgx + sprite.getWidth()-1;
         	
         	if(fgx > width) {
@@ -318,6 +439,9 @@ public class GameLoop extends Application implements Serializable
 //            moneybagList.add( moneybag );
 //        }
         
+        
+        uiSpriteM = uiSpriteMExplorer;
+        bgSpriteM = bgSpriteMExplorer;
         LongValue lastNanoTime = new LongValue( System.nanoTime() );
 
        
@@ -342,7 +466,7 @@ public class GameLoop extends Application implements Serializable
 //                    pointer.addVelocity(0,5);
                 
                 experience += 0.0001;
-                int randint = rand.nextInt(10000);
+                
 
                 
                 
@@ -350,8 +474,8 @@ public class GameLoop extends Application implements Serializable
                 
                 //GameObjects.updateposition();
                 //GameObjects.render( gc );
-                pointer.update(elapsedTime);
-                pointer2.update(elapsedTime);
+                posX = fighter.getposX();
+                posY = fighter.getposY();
                 // collision detection
                 
 //                Iterator<Sprite> moneybagIter = moneybagList.iterator();
@@ -371,56 +495,98 @@ public class GameLoop extends Application implements Serializable
                 
                 //for(Sprite fg:fgreen) fg.render(gc);
                 //pointer.render( gc );
-                moneybags(pointer, randint, gc);
-                ss.renderitems();
+                
+                int randint = rand.nextInt(10000);
+                if(!farm) {
+                	moneybags(fighter, randint, gc);
+                }
+                
+                ss.renderitems(elapsedTime);
 //                for (Sprite moneybag : moneybagList )
 //                    moneybag.render( gc );
                 
+                if(!farm) {
+                	fighter.update(elapsedTime);
+                	fighter.render(gc);
+                }
                 
-                DecimalFormat df = new DecimalFormat("###.###");
-                String pointsText = "Controls: you=1, pets=2, save(not working)=0, xp:" 
-                + df.format(experience) + 
-                		", money:" + money;
-                gc.fillText( pointsText, 300, 36 );
-                gc.strokeText( pointsText, 300, 36 );
+                if(!farm) {
+                	DecimalFormat df = new DecimalFormat("###.##");
+                    String headerText = "save(!work)=0, go to farm:g, xp:" 
+                    + df.format(experience) + 
+                    		", money:" + money + ", food:" + food;
+                    gc.fillText( headerText, 50, 24 );
+                    gc.strokeText( headerText, 50, 24 );
+                } else {
+
+                	DecimalFormat df = new DecimalFormat("###.##");
+                    String headerText = "purchase plot=1, save(!work)=0, explore:m, xp:" 
+                    + df.format(experience) + 
+                    		", money:" + money + ", food:" + food;
+                    gc.fillText( headerText, 50, 24 );
+                    gc.strokeText( headerText, 50, 24 );
+                }
+                
             }
         }.start();
 
         theStage.show();
     }
     
-    public void moneybags(Sprite pointer, int randint, GraphicsContext gc) {
+    public void moneybags(AnimatedImage fighter, int randint, GraphicsContext gc) {
     	if(!fieldhasmbag) {
-    		if(randint>9970) {
+    		if(randint>9980) {
                 int randwidth = rand.nextInt((int) width - 200);
                 int randheight = rand.nextInt((int) height - 200);
                 randwidth+=100;
                 randheight+=100;
             	cashbag = uiStore.orderSprite("moneybag", randwidth, randheight);
-            	uiSpriteM.addSprite(cashbag);
+            	uiSpriteMExplorer.addSprite(cashbag);
             	//uiSpriteM.addSprite(cashbag);
             	//uiSpriteM.addSprite(cashbag);
             	fieldhasmbag = true;
-            	this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+            	this.ss = new SpriteServer(gc, uiSpriteMExplorer, bgSpriteMExplorer);
             	//return ss;
             }
     	} else {
-    		if ( pointer.intersects(cashbag) )
+    		if ( fighter.intersects(cashbag) )
             {
     			System.out.println("Intersects");
-          	while(uiSpriteM.hasNext()) {
-          		if(uiSpriteM.next().name.contains("MbagSprite")) {
-          			uiSpriteM.remove();
+          	while(uiSpriteMExplorer.hasNext()) {
+          		if(uiSpriteMExplorer.next().name.contains("MbagSprite")) {
+          			uiSpriteMExplorer.remove();
           			money+=100;
           			cashbag = null;
           			fieldhasmbag = false;
-          			this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+          			this.ss = new SpriteServer(gc, uiSpriteMExplorer, bgSpriteMExplorer);
           		}
           	}
 
             }
     	}
     	//return ss;
-
     }
+	private void reorderSprites(boolean farm, GraphicsContext gc) {
+		// TODO Auto-generated method stub
+		if(farm) {
+			uiSpriteM = uiSpriteMFarmer;
+			System.out.println("setting ui to farmer");
+			this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+		} else {
+			uiSpriteM = uiSpriteMExplorer;
+			System.out.println("setting ui to explorer");
+			this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+		}
+	}
+	private void purchasePlot(GraphicsContext gc) {
+		if(!hascrop) {
+			if(money>=100) {
+				money-=100;
+				uiSpriteMFarmer.addSprite(css.orderSprite("FARMSMCROPBROWN", 0, 40));
+				this.ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+				hascrop = true;
+			}
+		}
+
+	}
 }

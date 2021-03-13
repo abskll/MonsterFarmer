@@ -1,5 +1,10 @@
+import java.io.Serializable;
 
-public class SpriteControl {
+public class SpriteControl implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4435222224717222313L;
 	Command[] activateCommands;
 	Command[] disableCommands;
 	Sprite sprite;

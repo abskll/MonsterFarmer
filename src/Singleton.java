@@ -3,10 +3,18 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Singleton {
+public class Singleton implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8925501569986912540L;
+	/**
+	 * 
+	 */
 	protected static Singleton uniqueInstance;
 	private List<String> outcontents = new ArrayList<String>();
 	private String fcontents = "";

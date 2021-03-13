@@ -1,6 +1,12 @@
-public class IntValue
+import java.io.Serializable;
+
+public class IntValue implements Serializable 
 {
-    public int value;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3822351166528743028L;
+	public int value;
     
     public IntValue(int i)
     {

@@ -1,10 +1,17 @@
+import java.io.Serializable;
+
 import javafx.scene.image.Image;
 
-public class FGSprite extends Sprite {
+public class FGSprite extends Sprite implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4734471786652827330L;
+	transient Image i;
 	public FGSprite() {
 		name = "FGSprite";
 		String filename = "BFT_FIELDGREEN.png";
-        Image i = new Image(filename);
+        i = new Image(filename);
         setImage(i);
         image = i;
         width = i.getWidth();

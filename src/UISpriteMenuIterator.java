@@ -1,7 +1,12 @@
+import java.io.Serializable;
 import java.util.Iterator;
 
-public class UISpriteMenuIterator implements Iterator<Sprite> {
-	Sprite[] list;
+public class UISpriteMenuIterator implements Iterator<Sprite>, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1233613081644934695L;
+	transient Sprite[] list;
 	int position = 0;
 	
 	public UISpriteMenuIterator(Sprite[] list) {

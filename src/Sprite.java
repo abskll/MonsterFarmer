@@ -1,11 +1,20 @@
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
+
+import java.io.Serializable;
 import java.util.Random;
 
-public abstract class Sprite
+public abstract class Sprite implements Serializable 
 {
-    Image image;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1143369162371188287L;
+	/**
+	 * 
+	 */
+	transient Image image;
     private double positionX;
     private double positionY;    
     private double velocityX;
@@ -127,19 +136,9 @@ public abstract class Sprite
         return " Position: [" + positionX + "," + positionY + "]" 
         + " Velocity: [" + velocityX + "," + velocityY + "]";
     }
-	public void grow() {
+	public void grow(double elapsedTime) {
 		// TODO Auto-generated method stub
-		
-
-//		new Thread(() -> {
-//			
-//		    while(!donegrowing) {
-//				int randnum = rand.nextInt(1000);
-//				if(randnum > 900) {
-//					
-//				}
-//		    }
-//		}).start();
+		//System.out.println(elapsedTime);
 		
 	}
 }

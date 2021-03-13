@@ -1,4 +1,5 @@
+import java.io.Serializable;
 
-public interface Command {
+public interface Command extends Serializable {
 	public void execute();
 }

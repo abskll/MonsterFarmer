@@ -1,6 +1,11 @@
+import java.io.Serializable;
 import java.util.Iterator;
 
-public class BGSpriteMenuIterator implements Iterator<Sprite> {
+public class BGSpriteMenuIterator implements Iterator<Sprite>, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5504235484139450459L;
 	Sprite[] list;
 	int position = 0;
 	

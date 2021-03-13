@@ -1,6 +1,11 @@
+import java.io.Serializable;
 import java.util.Iterator;
 
-public class BGSpriteMenu implements SpriteMenu {
+public class BGSpriteMenu implements SpriteMenu, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 596412147940083043L;
 	static final int MAX_ITEMS = 10000;
 	int numberOfItems = 0;
 	Sprite[] sprites;

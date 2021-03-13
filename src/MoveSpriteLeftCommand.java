@@ -1,5 +1,10 @@
+import java.io.Serializable;
 
-public class MoveSpriteLeftCommand implements Command {
+public class MoveSpriteLeftCommand implements Command, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3358199824075596418L;
 	Sprite sprite;
 	
 	public MoveSpriteLeftCommand(Sprite sprite) {

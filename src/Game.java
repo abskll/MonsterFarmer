@@ -2,6 +2,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -11,12 +12,17 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-public class Game extends Application {
+public class Game extends Application implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 9079102260098944415L;
 	String filename = "gamesave.ser";
 	//GameLoop gl;
 	Scene scene;
 	Singleton log = Logger.getInstance();
 	GameState GS;
+	GameLoop gl;
 	public void start(Stage s)throws Exception{
 		  //event();
 		GS = new GameState();
@@ -39,17 +45,18 @@ public class Game extends Application {
 	       in = new ObjectInputStream(fis);
 	       //p = (Person) in.readObject();
 	       //GS.setGameLoop((GameLoop) in.readObject());
-	       
+	       GS.setGameLoop((GameLoop) in.readObject());
 	       in.close();
 	   } catch (Exception ex) {
 	       ex.printStackTrace();
 	   }
-	   
+	   gl = GS.getGameLoop();
+	   gl.setGameState(GS);
 	   //GS.setGameLoop(gl);
 		Stage s = new Stage();
 		//gl.start(s);
 	   //GS.getGameLoop().start(GS.getStage());
-		GS.getGameLoop().start(s);
+		gl.start(s);
 
    }
   });
@@ -58,10 +65,10 @@ public class Game extends Application {
 		   //Game game = Game.getInstance();
 		   log.addLine("new game button clicked");
 			//GameState GS = GameState.getInstance();
-			GameLoop gl = new GameLoop(GS);
+			GameLoop gl = new GameLoop();
 			GS.setGameLoop(gl);
+			gl.setGameState(GS);
 		    Stage s = new Stage();
-		    GS.setStage(s);
 		    gl.start(s);
 	   }
 	  });
