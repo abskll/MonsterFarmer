@@ -444,7 +444,7 @@ public class GameLoop extends Application implements Serializable
         bgSpriteM = bgSpriteMExplorer;
         LongValue lastNanoTime = new LongValue( System.nanoTime() );
 
-       
+        reorderSprites(farm, gc);
         new AnimationTimer()
         {
             public void handle(long currentNanoTime)
