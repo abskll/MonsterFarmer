@@ -25,7 +25,7 @@ public class GameLoop extends Application implements Serializable
 	 * 
 	 */
 	private static final long serialVersionUID = -9037960853303947798L;
-	private Double experience = null;
+	private Double experience = 0.0;
 	private Integer money = null;
 	UISpriteMenu uiSpriteM = new UISpriteMenu();
 	BGSpriteMenu bgSpriteM = new BGSpriteMenu();
@@ -49,8 +49,17 @@ public class GameLoop extends Application implements Serializable
 	SpriteControl spritecontrol;
 	CropSpriteStore css = new CropSpriteStore();
 	private Double food = 0.0;
+	private Double health = 10.0;
+	private Double attack = 10.0;
+	private Double defense = 10.0;
+	private Double speed = 10.0;
+	private int level = 1;
 	transient GraphicsContext gc;
 	boolean hascrop = false;
+	int enemynumber = 0;
+	int maxenemiesnumber = 5;
+	boolean statsmenu = false;
+	int baseexptolevel = 15;
 	
 	
 	
@@ -262,6 +271,14 @@ public class GameLoop extends Application implements Serializable
 		                    	spritecontrol.activateButtonWasPushed(S);
 		                        // code block
 		                        break;
+		                    case T:
+		                    	if(statsmenu) {
+		                    		statsmenu=false;
+		                    	} else {
+		                    		statsmenu=true;
+		                    	}
+		                    	
+		                    	break;
 //		                    case DIGIT1:
 //	//	                    	spritecontrol.setCommand(D, goRight, stopgoRight);
 //	//	                		spritecontrol.setCommand(A, goLeft, stopgoLeft);
@@ -354,6 +371,7 @@ public class GameLoop extends Application implements Serializable
 		                    	//Singleton bar = HotterSingleton.getInstance();
 		                    	//GameState GS = GameState.getInstance();
 		                    	farm=false;
+		                    	statsmenu=false;
 		                    	reorderSprites(farm, gc);
 		                    	System.out.println("farm is now false");
 		                    	break;
@@ -468,7 +486,7 @@ public class GameLoop extends Application implements Serializable
                 experience += 0.0001;
                 
 
-                
+               
                 
 
                 
@@ -492,7 +510,7 @@ public class GameLoop extends Application implements Serializable
                 // render
                 
                 gc.clearRect(0, 0, width,height);
-                
+                levelup();
                 //for(Sprite fg:fgreen) fg.render(gc);
                 //pointer.render( gc );
                 
@@ -511,16 +529,54 @@ public class GameLoop extends Application implements Serializable
                 }
                 
                 if(!farm) {
+                	
                 	DecimalFormat df = new DecimalFormat("###.##");
-                    String headerText = "save(!work)=0, go to farm:g, xp:" 
+                    String headerText = "save=0, attk=P, farm=G, stats=T, xp:" 
                     + df.format(experience) + 
-                    		", money:" + money + ", food:" + food;
+                    		", money:" + money + ", food:" + food + ", Health:" + health;
                     gc.fillText( headerText, 50, 24 );
                     gc.strokeText( headerText, 50, 24 );
+                    if(statsmenu) {
+//                    	private Double food = 0.0;
+//                    	private Double health = 100.0;
+//                    	private Double attack = 10.0;
+//                    	private Double defense = 10.0;
+//                    	private Double speed = 10.0;
+//                    	private int level = 1;
+                    	//private Double experience = null;
+                    	df = new DecimalFormat("#########.##");
+                        String foodstr = "Food:" + df.format(food);
+                        String healthstr = "Health:" + df.format(health);
+                        String attackstr = "Attack:" + df.format(attack);
+                        String defensestr = "Defense:" + df.format(defense);
+                        String speedstr = "Speed:" + df.format(speed);
+                        String levelstr = "Level:" + df.format(level) + " (" + df.format(tonextlevelup()) + " to next level)";
+                        String expstr = "Exp:" + df.format(experience);
+                        gc.fillText( foodstr, 450, 200 );
+                        gc.strokeText( foodstr, 450, 200 );
+                        gc.fillText( healthstr, 450, 248 );
+                        gc.strokeText( healthstr, 450, 248 );
+                        gc.fillText( attackstr, 450, 296 );
+                        gc.strokeText( attackstr, 450, 296 );
+                        gc.fillText( defensestr, 450, 344 );
+                        gc.strokeText( defensestr, 450, 344 );
+                        gc.fillText( speedstr, 450, 392 );
+                        gc.strokeText( speedstr, 450, 392 );
+                        gc.fillText( levelstr, 450, 440 );
+                        gc.strokeText( levelstr, 450, 440 );
+                        gc.fillText( expstr, 450, 484 );
+                        gc.strokeText( expstr, 450, 484 );
+                        gc.fillText( "Exit Menu(T)", 450, 532 );
+                        gc.strokeText( "Exit Menu(T)", 450, 532 );
+                        //1024/2=512
+                        //768/2=384
+                        
+                    }
+                    
                 } else {
 
                 	DecimalFormat df = new DecimalFormat("###.##");
-                    String headerText = "purchase plot=1, save(!work)=0, explore:m, xp:" 
+                    String headerText = "purchase plot=1, save=0, explore=M, xp:" 
                     + df.format(experience) + 
                     		", money:" + money + ", food:" + food;
                     gc.fillText( headerText, 50, 24 );
@@ -528,6 +584,10 @@ public class GameLoop extends Application implements Serializable
                 }
                 
             }
+
+
+
+			
         }.start();
 
         theStage.show();
@@ -556,6 +616,7 @@ public class GameLoop extends Application implements Serializable
           		if(uiSpriteMExplorer.next().name.contains("MbagSprite")) {
           			uiSpriteMExplorer.remove();
           			money+=100;
+          			experience+=15;
           			cashbag = null;
           			fieldhasmbag = false;
           			this.ss = new SpriteServer(gc, uiSpriteMExplorer, bgSpriteMExplorer);
@@ -588,5 +649,41 @@ public class GameLoop extends Application implements Serializable
 			}
 		}
 
+	}
+	private int levelup() {
+		// TODO Auto-generated method stub
+		//baseexptolevel
+		//experience
+//		if(((experience / (level*baseexptolevel*1.25)))>1) {
+//			int previouslevel = level;
+//			int newlevel = (int) ((experience - (level*baseexptolevel*1.25)));
+//			level = newlevel;
+//			for(int i=previouslevel; i<=newlevel; i++) {
+//
+//			}
+//		}
+		boolean done = false;
+		while(!done) {
+			if(experience > (level*baseexptolevel*1.25)) {
+				level++;
+			} else {
+				break;
+			}
+		}
+		
+		health = 10.0 + level;
+		attack = 10.0 + level;
+		defense = 10.0 + level;
+		speed = 10.0 + 2*level;
+		
+//		private Double health = 10.0;
+//		private Double attack = 10.0;
+//		private Double defense = 10.0;
+//		private Double speed = 10.0;
+		return level;
+	}
+	private double tonextlevelup() {
+		// TODO Auto-generated method stub
+		return level*baseexptolevel*1.25 - experience;
 	}
 }
