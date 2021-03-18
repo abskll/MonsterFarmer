@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
 // Collect the Money Bags!
@@ -50,6 +51,7 @@ public class GameLoop extends Application implements Serializable
 	CropSpriteStore css = new CropSpriteStore();
 	private Double food = 0.0;
 	private Double health = 10.0;
+	private Double currenthealth = 10.0;
 	private Double attack = 10.0;
 	private Double defense = 10.0;
 	private Double speed = 10.0;
@@ -59,8 +61,14 @@ public class GameLoop extends Application implements Serializable
 	int enemynumber = 0;
 	int maxenemiesnumber = 5;
 	boolean statsmenu = false;
-	int baseexptolevel = 15;
-	
+	int baseexptolevel = 25;
+	//List<BasicAnimatedImage> BAI = new ArrayList<BasicAnimatedImage>();
+	EnemyBasicAnimatedImageMenu EnemyBAIMenu = new EnemyBasicAnimatedImageMenu();
+	EnemyBasicAnimatedImageStore EnemyBAIStore = new EnemyBasicAnimatedImageStore();
+	AnimatedImageServer AIserver;
+	List<BasicAnimatedImage> BAIattackable = new ArrayList<BasicAnimatedImage>();
+	private boolean canattack = false;
+	private Long timesincelastattack = 0L;
 	
 	
 	//    public static void main(String[] args) 
@@ -159,6 +167,7 @@ public class GameLoop extends Application implements Serializable
         ArrayList<String> input = new ArrayList<String>();
 
         AnimatedImage fighter = new AnimatedImage();
+        
         fighter.setPosition(posX, posY);
         if(uiSpriteMExplorer.getSprites()==null) {
         	uiSpriteMExplorer = new UISpriteMenu();
@@ -178,6 +187,7 @@ public class GameLoop extends Application implements Serializable
         //uiSpriteMExplorer.addSprite(fighter);
         //uiSpriteMExplorer.addSprite(pointer2);
         ss = new SpriteServer(gc, uiSpriteM, bgSpriteM);
+        AIserver = new AnimatedImageServer(gc, EnemyBAIMenu);
         
         spritecontrol = new SpriteControl();
         MoveAnimatedImage move = new MoveAnimatedImage(fighter);
@@ -318,6 +328,30 @@ public class GameLoop extends Application implements Serializable
 		                    	//Singleton bar = HotterSingleton.getInstance();
 		                    	//GameState GS = GameState.getInstance();
 		                    	break;
+		                    case P:
+		                    	if(canattack) {
+		                    		System.out.println("attacking");
+		                    		for(BasicAnimatedImage baiattacking: BAIattackable) {
+		                    			baiattacking.setHealth(baiattacking.getHealth() - (attack/baiattacking.getDefense()));
+		                    			System.out.println("enemy health left:" + baiattacking.getHealth());
+
+	                    				EnemyBAIMenu.position = 0;
+	                    				while(EnemyBAIMenu.hasNext()) {
+	                    					BasicAnimatedImage baimg = EnemyBAIMenu.next();
+	                    					if(baimg.getHealth() < 0) {
+	                    						EnemyBAIMenu.remove();
+	                    						experience = experience + 30;
+	                    					}
+	                    				}
+
+		                    		}
+		                    		timesincelastattack = System.nanoTime();
+		                    		canattack=false;
+		                    	} else {
+		                    		System.out.println("Cannot attack yet, last attack:" + Long.toString(timesincelastattack));
+		                    		//System.out.println("Current time:" + Long.toString(System.nanoTime()));
+		                    		//System.out.println((System.nanoTime()-timesincelastattack));
+		                    	}
 		                    default:
                     	// code block
                     	}
@@ -461,7 +495,8 @@ public class GameLoop extends Application implements Serializable
         uiSpriteM = uiSpriteMExplorer;
         bgSpriteM = bgSpriteMExplorer;
         LongValue lastNanoTime = new LongValue( System.nanoTime() );
-
+        currenthealth = 10.0 + (level*2);
+        
         reorderSprites(farm, gc);
         new AnimationTimer()
         {
@@ -484,10 +519,35 @@ public class GameLoop extends Application implements Serializable
 //                    pointer.addVelocity(0,5);
                 
                 experience += 0.0001;
-                
+                if(currenthealth < health) {
+                	currenthealth += 0.001;
+                }
 
                
+                if((System.nanoTime()-timesincelastattack) > (100000000000L/speed)) {
+                	canattack=true;
+                	//System.out.println((System.nanoTime()-timesincelastattack));
+                }
+            
                 
+                
+                for(BasicAnimatedImage baiattacking: BAIattackable) {
+                	if((System.nanoTime()-baiattacking.timesincelastattack) > (100000000000L/baiattacking.speed)) {
+        				currenthealth = currenthealth - baiattacking.getAttack()/defense;
+        				baiattacking.timesincelastattack = System.nanoTime();
+                	} else {
+                		System.out.println((System.nanoTime()-baiattacking.timesincelastattack));
+                		System.out.println((100000000000L/baiattacking.speed));
+                	}
+        			//baiattacking.setHealth(baiattacking.getHealth() - (attack/baiattacking.getDefense()));
+        			//System.out.println("enemy health left:" + baiattacking.getHealth());
+        		}
+                
+                if(currenthealth<0) {
+                	currenthealth = 10.0 + (level*5);
+                	fighter.setPosition(10, 10);
+                	experience -= 100;
+                }
 
                 
                 //GameObjects.updateposition();
@@ -517,15 +577,20 @@ public class GameLoop extends Application implements Serializable
                 int randint = rand.nextInt(10000);
                 if(!farm) {
                 	moneybags(fighter, randint, gc);
+                	randint = rand.nextInt(10000);
+                	batnemies(fighter, randint, gc, elapsedTime);
                 }
                 
+                
                 ss.renderitems(elapsedTime);
+                
 //                for (Sprite moneybag : moneybagList )
 //                    moneybag.render( gc );
                 
                 if(!farm) {
                 	fighter.update(elapsedTime);
                 	fighter.render(gc);
+                	AIserver.renderitems(elapsedTime);
                 }
                 
                 if(!farm) {
@@ -533,7 +598,7 @@ public class GameLoop extends Application implements Serializable
                 	DecimalFormat df = new DecimalFormat("###.##");
                     String headerText = "save=0, attk=P, farm=G, stats=T, xp:" 
                     + df.format(experience) + 
-                    		", money:" + money + ", food:" + food + ", Health:" + health;
+                    		", money:" + money + ", food:" + food + ", Health%:" + df.format(currenthealth/health*100);
                     gc.fillText( headerText, 50, 24 );
                     gc.strokeText( headerText, 50, 24 );
                     if(statsmenu) {
@@ -545,13 +610,16 @@ public class GameLoop extends Application implements Serializable
 //                    	private int level = 1;
                     	//private Double experience = null;
                     	df = new DecimalFormat("#########.##");
+                    	String currhpstr = "CurrentHealth:" + df.format(currenthealth);
                         String foodstr = "Food:" + df.format(food);
-                        String healthstr = "Health:" + df.format(health);
+                        String healthstr = "MaxHealth:" + df.format(health);
                         String attackstr = "Attack:" + df.format(attack);
                         String defensestr = "Defense:" + df.format(defense);
                         String speedstr = "Speed:" + df.format(speed);
                         String levelstr = "Level:" + df.format(level) + " (" + df.format(tonextlevelup()) + " to next level)";
                         String expstr = "Exp:" + df.format(experience);
+                        gc.fillText( currhpstr, 450, 152 );
+                        gc.strokeText( currhpstr, 450, 152 );
                         gc.fillText( foodstr, 450, 200 );
                         gc.strokeText( foodstr, 450, 200 );
                         gc.fillText( healthstr, 450, 248 );
@@ -576,7 +644,7 @@ public class GameLoop extends Application implements Serializable
                 } else {
 
                 	DecimalFormat df = new DecimalFormat("###.##");
-                    String headerText = "purchase plot=1, save=0, explore=M, xp:" 
+                    String headerText = "purchase plot($100)=1, save=0, explore=M, xp:" 
                     + df.format(experience) + 
                     		", money:" + money + ", food:" + food;
                     gc.fillText( headerText, 50, 24 );
@@ -617,6 +685,8 @@ public class GameLoop extends Application implements Serializable
           			uiSpriteMExplorer.remove();
           			money+=100;
           			experience+=15;
+          			levelup();
+          			currenthealth = 10.0 + (level*2);
           			cashbag = null;
           			fieldhasmbag = false;
           			this.ss = new SpriteServer(gc, uiSpriteMExplorer, bgSpriteMExplorer);
@@ -626,6 +696,45 @@ public class GameLoop extends Application implements Serializable
             }
     	}
     	//return ss;
+    }
+    public void batnemies(AnimatedImage fighter, int randint, GraphicsContext gc, double elapsedTime) {
+//    	EnemyBasicAnimatedImageMenu EnemyBAIMenu = new EnemyBasicAnimatedImageMenu();
+//    	EnemyBasicAnimatedImageStore EnemyBAIStore = new EnemyBasicAnimatedImageStore();
+    	if(EnemyBAIMenu.numberOfItems < 5) {
+    		if(randint>9950) {
+                int randwidth = rand.nextInt((int) width - 200);
+                int randheight = rand.nextInt((int) height - 200);
+                randwidth+=100;
+                randheight+=100;
+                BasicAnimatedImage bat = EnemyBAIStore.orderBasicAnimatedImage("bat", randwidth, randheight);
+                EnemyBAIMenu.addSprite(bat);
+                this.AIserver = new AnimatedImageServer(gc, EnemyBAIMenu);
+                
+    		}
+    	} 
+		BAIattackable.clear();
+		BasicAnimatedImage[] BAI = EnemyBAIMenu.getSprites();
+		for(int i = 0; i < EnemyBAIMenu.numberOfItems; i++) {
+    		if ( fighter.intersects(BAI[i]) )
+            {
+    			System.out.println("Intersects");
+    			BAIattackable.add(BAI[i]);
+//              	while(uiSpriteMExplorer.hasNext()) {
+//              		if(uiSpriteMExplorer.next().name.contains("MbagSprite")) {
+//              			uiSpriteMExplorer.remove();
+//              			money+=100;
+//              			experience+=15;
+//              			cashbag = null;
+//              			fieldhasmbag = false;
+//              			this.ss = new SpriteServer(gc, uiSpriteMExplorer, bgSpriteMExplorer);
+//              		}
+//              	}
+
+            }  			
+		}
+    	
+    	
+    	
     }
 	private void reorderSprites(boolean farm, GraphicsContext gc) {
 		// TODO Auto-generated method stub
@@ -671,10 +780,10 @@ public class GameLoop extends Application implements Serializable
 			}
 		}
 		
-		health = 10.0 + level;
-		attack = 10.0 + level;
-		defense = 10.0 + level;
-		speed = 10.0 + 2*level;
+		health = 10.0 + (level*2);
+		attack = 10.0 + (level*2);
+		defense = 10.0 + (level*2);
+		speed = 10.0 + 2*(level*2);
 		
 //		private Double health = 10.0;
 //		private Double attack = 10.0;
@@ -685,5 +794,11 @@ public class GameLoop extends Application implements Serializable
 	private double tonextlevelup() {
 		// TODO Auto-generated method stub
 		return level*baseexptolevel*1.25 - experience;
+	}
+	public boolean isCanattack() {
+		return canattack;
+	}
+	public void setCanattack(boolean canattack) {
+		this.canattack = canattack;
 	}
 }
